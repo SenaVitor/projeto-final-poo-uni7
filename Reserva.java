@@ -4,12 +4,17 @@ public class Reserva {
     private Voo voo;
     private static int cont = 1;
     private int codigo;
+    private double valor;
 
     public Reserva(Cliente cliente, Voo voo){
         this.cliente = cliente;
         this.voo = voo;
         codigo = cont;
         cont++;
+    }
+
+    public void alterarReserva(){
+
     }
 
     public Cliente getCliente() {
@@ -42,5 +47,13 @@ public class Reserva {
 
     public void setCodigo(int codigo) {
         this.codigo = codigo;
+    }
+
+    public double getValor() {
+        return valor;
+    }
+
+    public void setValor(double valor) {
+        this.valor = valor;
     }
 }
