@@ -11,14 +11,14 @@ public class Voo{
     private ArrayList<Cliente> passageiros;
     private static final ArrayList<String> locais = new ArrayList<>(Arrays.asList("FOR", "CGH", "SSA", "BSB", "MAO"));
 
-    private final ArrayList <Integer> primeirosAssentos = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6));
+    private static final ArrayList <Integer> primeirosAssentos = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6));
     private ArrayList<Integer> assentosOcupados;
     private int numPassageiros = 0;
-    private final int numAssentos = 220;
+    private static final int numAssentos = 10;
     private int numAssentosDisponiveis;
     private Random random = new Random();
 
-    private static double valorTotal = 0;
+    private double valorTotal = 0;
     private double valor;
 
     public Voo(String origem, String destino) throws exceptions.LocalInvalidoException{
@@ -36,7 +36,11 @@ public class Voo{
 
     public int comprarPassagem(Reserva reserva) throws exceptions.VooLotadoException{
         if(numAssentosDisponiveis > 0){
-            reserva.setNumAssento(definirAssento(random.nextInt(numAssentos)));
+            if(apenasSeisPrimeiroslivres){
+                reserva.setNumAssento(definirAssento(random.nextInt(Collections.min(primeirosAssentos), Collections.max(primeirosAssentos) + 1)));
+            }else{
+                reserva.setNumAssento(definirAssento(random.nextInt(Collections.max(primeirosAssentos) + 1, numAssentos+1)));
+            }
             numPassageiros++;
             valor = 100+Math.pow(5, Math.log10(numPassageiros));
             reserva.setValor(valor);
@@ -50,7 +54,6 @@ public class Voo{
     }
 
     public int ordenarLista(Reserva reserva){
-//        System.out.println(reserva.getCliente().getNome() + " Código " + reserva.getCodigo() + " Assento " + reserva.getNumAssento());
         for(int i = 0; i < assentosOcupados.size(); i++){
             if(reserva.getNumAssento() < assentosOcupados.get(i)){
                 passageiros.add(i, reserva.getCliente());
@@ -64,26 +67,29 @@ public class Voo{
     }
 
     public int definirAssento(int assento){
-        String n;
-        if(assento == 0){
-            n = String.valueOf(Math.random() * numAssentos);
-            assento = definirAssento(Integer.parseInt(n));
-        }
-        if(passageiros.size() > 0){
-            for (int i = 0; i < assentosOcupados.size(); i++) {
-                if(assento == assentosOcupados.get(i)){
-                    n = String.valueOf(Math.random() * numAssentos);
-                    assento = definirAssento(Integer.parseInt(n));
+        if(numAssentosDisponiveis == 1){
+            for (int i = 1; i <= numAssentos; i++){
+                if(!assentosOcupados.contains(i)){
+                    assento = i;
+                    numAssentosDisponiveis--;
+                    return assento;
                 }
             }
         }
-        if(!apenasSeisPrimeiroslivres){
-            for (int j = 1; j <= 6; j++) {
-                if(assento == j){
-                    n = String.valueOf(Math.random() * numAssentos);
-                    assento = definirAssento(Integer.parseInt(n));
+        if(passageiros.size() > 0){
+            if(assentosOcupados.contains(assento)){
+                int comeco;
+                if(apenasSeisPrimeiroslivres){
+                    comeco = Collections.min(primeirosAssentos);
+                }else{
+                    comeco = Collections.max(primeirosAssentos) + 1;
                 }
-                break;
+                for(int j = comeco; j <= numAssentos; j++){
+                    if(j != assento && !assentosOcupados.contains(j)){
+                        assento = j;
+                        break;
+                    }
+                }
             }
         }
         numAssentosDisponiveis--;
@@ -93,12 +99,24 @@ public class Voo{
     public int alterarAssento(Reserva reserva, int assento) throws AssentoInvalidoException{
         if(assentosOcupados.contains(assento)) throw new AssentoInvalidoException();
         assentosOcupados.remove(assentosOcupados.indexOf(reserva.getNumAssento()));
-        if(primeirosAssentos.contains(assento)) reserva.setValor(reserva.getValor() + 50);
+        if(primeirosAssentos.contains(assento) && !primeirosAssentos.contains(reserva.getNumAssento())) {
+            reserva.setValor(reserva.getValor() + 50);
+            valorTotal+=50;
+        }
         passageiros.remove(reserva.getCliente());
         reserva.setNumAssento(assento);
         int index = ordenarLista(reserva);
         checaPassageiros();
         return index;
+    }
+
+    public void cancelarReserva(Reserva reserva){
+        valorTotal-=reserva.getValor();
+        assentosOcupados.remove(assentosOcupados.indexOf(reserva.getNumAssento()));
+        passageiros.remove(reserva.getCliente());
+        numPassageiros--;
+        numAssentosDisponiveis++;
+        checaPassageiros();
     }
 
     public void imprimirPassageiros(ArrayList <Reserva> reservas) throws VooSemPassageirosException {
@@ -108,21 +126,19 @@ public class Voo{
                 msg += "\nReserva " + reservas.get(i).getCodigo() + " Nome " + passageiros.get(i).getNome() + " Cpf " + passageiros.get(i).getCpf() +
                         " Assento " + reservas.get(i).getNumAssento() + " Valor " + reservas.get(i).getValor();
             }
-            JOptionPane.showMessageDialog(null, msg + "\nValor Total: " + valorTotal);
+            System.out.println(msg + "\nValor Total: " + valorTotal);
         }else{
             throw new VooSemPassageirosException();
         }
     }
 
     public boolean checaLocal(String local){
-        for (int i = 0; i < locais.size(); i++) {
-            if(local.equals(locais.get(i))) return true;
-        }
+        if(locais.contains(local)) return true;
         return false;
     }
 
     public void checaPassageiros(){
-        if(numPassageiros == (numAssentos-6)){
+        if(numAssentosDisponiveis == 6){
             int cont = 0;
             for (int assentoAtual : primeirosAssentos){
                 if(assentosOcupados.contains(assentoAtual)) cont++;
@@ -167,5 +183,9 @@ public class Voo{
     }
     public ArrayList<Integer> getAssentosOcupados(){
         return assentosOcupados;
+    }
+
+    public ArrayList<Integer> getPrimeirosAssentos(){
+        return primeirosAssentos;
     }
 }

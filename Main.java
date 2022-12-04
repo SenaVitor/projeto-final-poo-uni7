@@ -10,7 +10,7 @@ public class Main {
         ArrayList<Voo> voos = new ArrayList<>();
         ArrayList<Reserva> reservas = new ArrayList<>();
         String senha;
-        System.out.println("Aeroportos: " + Voo.getLocais());
+        int continuar;
         try {
             do {
                 op = Integer.parseInt(JOptionPane.showInputDialog(null, "Menu \n1 - Comprar passagem \n2 - Alterar o assento \n" +
@@ -18,6 +18,7 @@ public class Main {
                 switch (op) {
                     case (1):
                         try {
+                            System.out.println("Aeroportos: " + Voo.getLocais());
                             String origem = JOptionPane.showInputDialog(null, "Digite o aeroporto de origem:").toUpperCase();
                             String destino = JOptionPane.showInputDialog(null, "Digite o aeroporto de destino:").toUpperCase();
                             if (voos.size() == 0) {
@@ -35,7 +36,7 @@ public class Main {
                                     }
                                 }
                             }
-                            int continuar = JOptionPane.showOptionDialog(null, "Confirma a compra da passagem de " + voos.get(index).getValor() + " R$?", "Continuar?", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, 0);
+                            continuar = JOptionPane.showOptionDialog(null, "Confirma a compra da passagem de " + voos.get(index).getValor() + " R$?", "Continuar?", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, 0);
                             if (continuar == 0) {
                                 String nome = JOptionPane.showInputDialog(null, "Digite o nome do passageiro:");
                                 String cpf = JOptionPane.showInputDialog(null, "Digite o cpf do passageiro:");
@@ -52,12 +53,15 @@ public class Main {
                             JOptionPane.showMessageDialog(null, "Local Inválido!");
                         } catch (VooLotadoException e) {
                             JOptionPane.showMessageDialog(null, "Voo Lotado!");
+                        } catch (DadoVazioException e) {
+                            JOptionPane.showMessageDialog(null, "Nome ou cpf inválido(s)");
                         } catch (Exception e) {
-                            JOptionPane.showMessageDialog(null, "Erro Geral " + e);
+                            JOptionPane.showMessageDialog(null, "Erro Geral");
                         }
                         break;
                     case (2):
                         try{
+                            continuar = 0;
                             int codigo = Integer.parseInt(JOptionPane.showInputDialog(null, "Digite o código da sua reserva"));
                             boolean reservaExiste = false;
                             for (Reserva reserva:reservas) {
@@ -69,9 +73,66 @@ public class Main {
                                     if(assentosDisponiveis.size() == 0) throw new VooLotadoException();
                                     System.out.println("Assentos disponíveis:\n" + assentosDisponiveis);
                                     int assento = Integer.parseInt(JOptionPane.showInputDialog(null, "Digite o novo assento"));
-                                    index = reserva.getVoo().alterarAssento(reserva, assento);
+                                    if(reserva.getVoo().getPrimeirosAssentos().contains(assento)) continuar = JOptionPane.showOptionDialog(null,
+                                            "Esse assento requer um adicional de 50 R$, deseja continuar?", "Continuar?",
+                                            JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, 0);
+                                    if (continuar == 0) {
+                                        index = reserva.getVoo().alterarAssento(reserva, assento);
+                                        reservas.remove(reserva);
+                                        reservas.add(index, reserva);
+                                        reservaExiste = true;
+                                    }else{
+                                        throw new OperacaoCanceladaException();
+                                    }
+                                    break;
+                                }
+                            }
+                            if(!reservaExiste) throw new CodigoInexistenteException();
+                        } catch (CodigoInexistenteException e) {
+                            JOptionPane.showMessageDialog(null, "Código Inexistente!");
+                        } catch (OperacaoCanceladaException e) {
+                            JOptionPane.showMessageDialog(null, "Operação Cancelada!");
+                        } catch (AssentoInvalidoException e) {
+                            JOptionPane.showMessageDialog(null, "Assento Inválido!");
+                        } catch (VooLotadoException e) {
+                            JOptionPane.showMessageDialog(null, "Voo Lotado!");
+                        } catch (Exception e) {
+                            JOptionPane.showMessageDialog(null, "Erro Geral");
+                        }
+                        break;
+                    case (3):
+                        try{
+                            int codigo = Integer.parseInt(JOptionPane.showInputDialog(null, "Digite o código da sua reserva"));
+                            boolean reservaExiste = false;
+                            for (Reserva reserva:reservas) {
+                                if (reserva.getCodigo() == codigo) {
+                                    String nome = JOptionPane.showInputDialog(null, "Digite o nome do novo cliente");
+                                    String cpf = JOptionPane.showInputDialog(null, "Digite o cpf do novo cliente");
+                                    reserva.getCliente().setNome(nome);
+                                    reserva.getCliente().setCpf(cpf);
+                                    JOptionPane.showMessageDialog(null, "Titularidade alterada com sucesso!");
+                                    reservaExiste = true;
+                                }
+                            }
+                            if(!reservaExiste) throw new CodigoInexistenteException();
+                        } catch (CodigoInexistenteException e) {
+                            JOptionPane.showMessageDialog(null, "Código Inexistente!");
+                        } catch (DadoVazioException e) {
+                            JOptionPane.showMessageDialog(null, "Nome ou cpf inválido(s)");
+                        } catch (Exception e) {
+                            JOptionPane.showMessageDialog(null, "Erro Geral!");
+                        }
+                        break;
+                    case (4):
+                        try{
+                            int codigo = Integer.parseInt(JOptionPane.showInputDialog(null, "Digite o código da sua reserva"));
+                            boolean reservaExiste = false;
+                            for (Reserva reserva:reservas) {
+                                if (reserva.getCodigo() == codigo) {
+                                    reserva.getVoo().cancelarReserva(reserva);
                                     reservas.remove(reserva);
-                                    reservas.add(index, reserva);
+                                    reserva = null;
+                                    JOptionPane.showMessageDialog(null, "Reserva cancelada com sucesso!");
                                     reservaExiste = true;
                                     break;
                                 }
@@ -79,22 +140,13 @@ public class Main {
                             if(!reservaExiste) throw new CodigoInexistenteException();
                         } catch (CodigoInexistenteException e) {
                             JOptionPane.showMessageDialog(null, "Código Inexistente!");
-                        } catch (AssentoInvalidoException e) {
-                            JOptionPane.showMessageDialog(null, "Assento Inválido!");
-                        } catch (VooLotadoException e) {
-                            JOptionPane.showMessageDialog(null, "Voo Lotado!");
                         } catch (Exception e) {
-                            JOptionPane.showMessageDialog(null, "Erro Geral " + e);
+                            JOptionPane.showMessageDialog(null, "Erro Geral!");
                         }
-                        break;
-                    case (3):
-                        //alterar titularidade
-                        break;
-                    case (4):
-                        //cancelar reserva
                         break;
                     case (5):
                         try {
+                            System.out.println("Aeroportos: " + Voo.getLocais());
                             senha = JOptionPane.showInputDialog(null, "Digite a senha:");
                             if(!senha.equals("123")) throw new SenhaInvalidaException();
                             index = -1;
