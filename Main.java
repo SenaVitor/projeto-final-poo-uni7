@@ -2,7 +2,6 @@ import exceptions.*;
 
 import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
@@ -19,8 +18,8 @@ public class Main {
                 switch (op) {
                     case (1):
                         try {
-                            String origem = JOptionPane.showInputDialog(null, "Digite o aeroporto de origem:");
-                            String destino = JOptionPane.showInputDialog(null, "Digite o aeroporto de destino:");
+                            String origem = JOptionPane.showInputDialog(null, "Digite o aeroporto de origem:").toUpperCase();
+                            String destino = JOptionPane.showInputDialog(null, "Digite o aeroporto de destino:").toUpperCase();
                             if (voos.size() == 0) {
                                 voos.add(new Voo(origem, destino));
                                 index = 0;
@@ -42,12 +41,12 @@ public class Main {
                                 String cpf = JOptionPane.showInputDialog(null, "Digite o cpf do passageiro:");
                                 Cliente cliente = new Cliente(nome, cpf);
                                 Reserva reserva = new Reserva(cliente, voos.get(index));
-                                reservas.add(reserva);
 //                                for (int i = 0; i < 10; i++) {
-                                    voos.get(index).comprarPassagem(reserva);
+                                index = voos.get(index).comprarPassagem(reserva);
+                                reservas.add(index, reserva);
 //                                }
                                 JOptionPane.showMessageDialog(null, cliente.getNome() + ", sua reserva foi realizada com sucesso! " +
-                                        " seu código é " + reserva.getCodigo());
+                                        " seu código é " + reserva.getCodigo() + "\nAssento " + reserva.getNumAssento());
                             }
                         } catch (LocalInvalidoException e) {
                             JOptionPane.showMessageDialog(null, "Local Inválido!");
@@ -58,7 +57,34 @@ public class Main {
                         }
                         break;
                     case (2):
-                        //Alterar assento
+                        try{
+                            int codigo = Integer.parseInt(JOptionPane.showInputDialog(null, "Digite o código da sua reserva"));
+                            boolean reservaExiste = false;
+                            for (Reserva reserva:reservas) {
+                                if(reserva.getCodigo() == codigo) {
+                                    ArrayList<Integer> assentosDisponiveis = new ArrayList<>();
+                                    for(int i = 1; i <= reserva.getVoo().getNumAssentos();i++){
+                                        if(!reserva.getVoo().getAssentosOcupados().contains(i)) assentosDisponiveis.add(i);
+                                    }
+                                    if(assentosDisponiveis.size() == 0) throw new VooLotadoException();
+                                    System.out.println("Assentos disponíveis:\n" + assentosDisponiveis);
+                                    int assento = Integer.parseInt(JOptionPane.showInputDialog(null, "Digite o novo assento"));
+                                    index = reserva.getVoo().alterarAssento(reserva, assento);
+                                    reservas.remove(reserva);
+                                    reservas.add(index, reserva);
+                                    break;
+                                }
+                            }
+                            if(!reservaExiste) throw new CodigoInexistenteException();
+                        } catch (CodigoInexistenteException e) {
+                            JOptionPane.showMessageDialog(null, "Código Inexistente!");
+                        } catch (AssentoInvalidoException e) {
+                            JOptionPane.showMessageDialog(null, "Assento Inválido!");
+                        } catch (VooLotadoException e) {
+                            JOptionPane.showMessageDialog(null, "Voo Lotado!");
+                        } catch (Exception e) {
+                            JOptionPane.showMessageDialog(null, "Erro Geral " + e);
+                        }
                         break;
                     case (3):
                         //alterar titularidade
@@ -71,8 +97,8 @@ public class Main {
                             senha = JOptionPane.showInputDialog(null, "Digite a senha:");
                             if(!senha.equals("123")) throw new SenhaInvalidaException();
                             index = -1;
-                            String origem = JOptionPane.showInputDialog(null, "Digite o aeroporto de origem:");
-                            String destino = JOptionPane.showInputDialog(null, "Digite o aeroporto de destino:");
+                            String origem = JOptionPane.showInputDialog(null, "Digite o aeroporto de origem:").toUpperCase();
+                            String destino = JOptionPane.showInputDialog(null, "Digite o aeroporto de destino:").toUpperCase();
                             for (int i = 0; i < voos.size(); i++) {
                                 if (voos.get(i).getOrigem().equals(origem) && voos.get(i).getDestino().equals(destino)) {
                                     index = i;
