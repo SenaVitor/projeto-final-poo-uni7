@@ -39,7 +39,6 @@ public class Voo{
             reserva.setNumAssento(definirAssento(random.nextInt(numAssentos)));
             numPassageiros++;
             valor = 100+Math.pow(5, Math.log10(numPassageiros));
-//            valor = Double.parseDouble(new DecimalFormat(".##").format(valor));
             reserva.setValor(valor);
             valorTotal += valor;
             int index = ordenarLista(reserva);
@@ -51,7 +50,7 @@ public class Voo{
     }
 
     public int ordenarLista(Reserva reserva){
-        System.out.println(reserva.getCliente().getNome() + " Código " + reserva.getCodigo() + " Assento " + reserva.getNumAssento());
+//        System.out.println(reserva.getCliente().getNome() + " Código " + reserva.getCodigo() + " Assento " + reserva.getNumAssento());
         for(int i = 0; i < assentosOcupados.size(); i++){
             if(reserva.getNumAssento() < assentosOcupados.get(i)){
                 passageiros.add(i, reserva.getCliente());
@@ -73,7 +72,6 @@ public class Voo{
         if(passageiros.size() > 0){
             for (int i = 0; i < assentosOcupados.size(); i++) {
                 if(assento == assentosOcupados.get(i)){
-//                    assento = definirAssento(random.nextInt(numAssentos));
                     n = String.valueOf(Math.random() * numAssentos);
                     assento = definirAssento(Integer.parseInt(n));
                 }
@@ -81,7 +79,6 @@ public class Voo{
         }
         if(!apenasSeisPrimeiroslivres){
             for (int j = 1; j <= 6; j++) {
-//                if(assento == j) assento = definirAssento(random.nextInt(numAssentos));
                 if(assento == j){
                     n = String.valueOf(Math.random() * numAssentos);
                     assento = definirAssento(Integer.parseInt(n));
@@ -95,7 +92,7 @@ public class Voo{
 
     public int alterarAssento(Reserva reserva, int assento) throws AssentoInvalidoException{
         if(assentosOcupados.contains(assento)) throw new AssentoInvalidoException();
-        assentosOcupados.remove(assento);
+        assentosOcupados.remove(assentosOcupados.indexOf(reserva.getNumAssento()));
         if(primeirosAssentos.contains(assento)) reserva.setValor(reserva.getValor() + 50);
         passageiros.remove(reserva.getCliente());
         reserva.setNumAssento(assento);
@@ -110,7 +107,6 @@ public class Voo{
             for (int i = 0; i < passageiros.size(); i++) {
                 msg += "\nReserva " + reservas.get(i).getCodigo() + " Nome " + passageiros.get(i).getNome() + " Cpf " + passageiros.get(i).getCpf() +
                         " Assento " + reservas.get(i).getNumAssento() + " Valor " + reservas.get(i).getValor();
-//                System.out.println(passageiros.get(i).getNome());
             }
             JOptionPane.showMessageDialog(null, msg + "\nValor Total: " + valorTotal);
         }else{

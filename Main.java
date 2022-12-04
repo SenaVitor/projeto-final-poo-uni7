@@ -72,6 +72,7 @@ public class Main {
                                     index = reserva.getVoo().alterarAssento(reserva, assento);
                                     reservas.remove(reserva);
                                     reservas.add(index, reserva);
+                                    reservaExiste = true;
                                     break;
                                 }
                             }
