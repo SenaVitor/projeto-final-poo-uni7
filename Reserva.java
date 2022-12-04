@@ -1,3 +1,7 @@
+import exceptions.AssentoInvalidoException;
+
+import java.util.ArrayList;
+
 public class Reserva {
     private Cliente cliente;
     private int numAssento;
@@ -11,10 +15,6 @@ public class Reserva {
         this.voo = voo;
         codigo = cont;
         cont++;
-    }
-
-    public void alterarReserva(){
-
     }
 
     public Cliente getCliente() {
