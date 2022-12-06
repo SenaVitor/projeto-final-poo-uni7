@@ -14,7 +14,7 @@ public class Voo{
     private static final ArrayList <Integer> primeirosAssentos = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6));
     private ArrayList<Integer> assentosOcupados;
     private int numPassageiros = 0;
-    private static final int numAssentos = 10;
+    private static final int numAssentos = 220;
     private int numAssentosDisponiveis;
     private Random random = new Random();
 
